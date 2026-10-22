@@ -7,7 +7,8 @@ type Config struct {
 }
 
 type App struct {
-	ENV string `yaml:"env"`
+	ENV         string `yaml:"env"`
+	LoggerLevel string `yaml:"logger_level"`
 }
 
 type Repository struct {
