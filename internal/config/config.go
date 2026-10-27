@@ -4,6 +4,7 @@ type Config struct {
 	App        App        `yaml:"app"`
 	Server     Server     `yaml:"server"`
 	Repository Repository `yaml:"repository"`
+	Embedding  Embedding  `yaml:"embedding"`
 }
 
 type App struct {
@@ -18,6 +19,11 @@ type Repository struct {
 type Server struct {
 	Address string
 	Port    string
+}
+
+type Embedding struct {
+	Length       int    `yaml:"length"`
+	SearchMethod string `yaml:"search_method"`
 }
 
 func New() *Config {

@@ -1,7 +1,16 @@
-package cmd
+package main
 
-import "github.com/Zrossiz/mylvus/internal/app"
+import (
+	"log"
+	"os"
+
+	"github.com/Zrossiz/mylvus/internal/app"
+)
 
 func main() {
-	app.Start()
+	err := app.Start()
+	if err != nil {
+		log.Printf("start app err: %v", err)
+		os.Exit(1)
+	}
 }
