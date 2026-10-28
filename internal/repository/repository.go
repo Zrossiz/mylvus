@@ -9,10 +9,10 @@ type Repository struct {
 	Embedding EmbeddingRepo
 }
 
-func New(cfg config.Repository) *Repository {
+func New(cfg *config.Config) *Repository {
 	var repo Repository
 
-	if cfg.JSONFilePath != "" {
+	if cfg.Repository.JSONFilePath != "" {
 		jsonRepo := jsonfile.NewJSONRepository(cfg)
 
 		repo.Embedding = jsonRepo.Embedding

@@ -5,20 +5,28 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Zrossiz/mylvus/internal/apperrors"
+	"github.com/Zrossiz/mylvus/internal/config"
 	"github.com/Zrossiz/mylvus/internal/model"
 )
 
 type EmbeddingRepository struct {
+	cfg      config.Embedding
 	filepath string
 }
 
-func NewEmbeddingRepository(filepath string) *EmbeddingRepository {
+func NewEmbeddingRepository(filepath string, cfg config.Embedding) *EmbeddingRepository {
 	return &EmbeddingRepository{
 		filepath: filepath,
+		cfg:      cfg,
 	}
 }
 
 func (r *EmbeddingRepository) Create(embedding model.Embedding) error {
+	if r.cfg.Length != len(embedding.Vector) {
+		return apperrors.ErrInvalidEmbeddingLen
+	}
+
 	file, err := os.OpenFile(r.filepath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("open json file err: %w", err)

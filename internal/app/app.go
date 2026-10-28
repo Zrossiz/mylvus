@@ -14,7 +14,10 @@ import (
 )
 
 func Start() error {
-	cfg := config.New()
+	cfg, err := config.New()
+	if err != nil {
+		return err
+	}
 
 	log, err := logger.New(cfg.App.LoggerLevel)
 	if err != nil {
@@ -23,12 +26,13 @@ func Start() error {
 
 	zap.ReplaceGlobals(log)
 
-	repo := repository.New(cfg.Repository)
+	repo := repository.New(cfg)
 	srv := service.New(cfg, repo)
 
 	r := chi.NewRouter()
 	rest.New(r, srv)
 
+	zap.L().Sugar().Infof("starting server on %s:%s", cfg.Server.Address, cfg.Server.Port)
 	address := fmt.Sprintf("%s:%s", cfg.Server.Address, cfg.Server.Port)
 	if err := http.ListenAndServe(address, r); err != nil {
 		return fmt.Errorf("start http server err: %w", err)

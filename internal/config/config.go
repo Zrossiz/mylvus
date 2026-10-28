@@ -1,5 +1,12 @@
 package config
 
+import (
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
 type Config struct {
 	App        App        `yaml:"app"`
 	Server     Server     `yaml:"server"`
@@ -26,10 +33,19 @@ type Embedding struct {
 	SearchMethod string `yaml:"search_method"`
 }
 
-func New() *Config {
+func New() (*Config, error) {
+	data, err := os.ReadFile("/Users/zrossiz/Desktop/mylvus/config/dev.yaml")
+	if err != nil {
+		return nil, err
+	}
+
 	var cfg Config
+	err = yaml.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
 
-	// TODO: парсить yaml
+	fmt.Println(cfg)
 
-	return &cfg
+	return &cfg, nil
 }

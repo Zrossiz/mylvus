@@ -8,8 +8,8 @@ type JSONRepository struct {
 	Embedding *EmbeddingRepository
 }
 
-func NewJSONRepository(cfg config.Repository) *JSONRepository {
+func NewJSONRepository(cfg *config.Config) *JSONRepository {
 	return &JSONRepository{
-		Embedding: NewEmbeddingRepository(cfg.JSONFilePath),
+		Embedding: NewEmbeddingRepository(cfg.Repository.JSONFilePath, cfg.Embedding),
 	}
 }

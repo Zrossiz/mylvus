@@ -1,0 +1,11 @@
+app:
+  env: dev
+  logger_level: info
+server:
+  address: localhost
+  port: 9000
+repository:
+  json_file_path: /Users/zrossiz/Desktop/mylvus/data.json
+embedding:
+  length: 300
+  search_method: cosine
