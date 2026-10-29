@@ -8,6 +8,7 @@ import (
 
 	"github.com/Zrossiz/mylvus/internal/model"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
@@ -70,6 +71,7 @@ func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
 	var body findEmbeddingsDTO
+	start := time.Now()
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -88,6 +90,9 @@ func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	diff := time.Since(start)
+	zap.L().Info("time to find closest transport cosine embeddings: ", zap.Int64("transport", diff.Microseconds()))
 
 	for i := range embs {
 		embs[i].Embedding.Vector = []float32{}

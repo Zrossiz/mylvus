@@ -26,7 +26,10 @@ func Start() error {
 
 	zap.ReplaceGlobals(log)
 
-	repo := repository.New(cfg)
+	repo, err := repository.New(cfg)
+	if err != nil {
+		return err
+	}
 	srv := service.New(cfg, repo)
 
 	r := chi.NewRouter()

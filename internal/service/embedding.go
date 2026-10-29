@@ -1,9 +1,12 @@
 package service
 
 import (
+	"time"
+
 	"github.com/Zrossiz/mylvus/internal/apperrors"
 	"github.com/Zrossiz/mylvus/internal/config"
 	"github.com/Zrossiz/mylvus/internal/model"
+	"go.uber.org/zap"
 )
 
 type EmbeddingService struct {
@@ -31,7 +34,17 @@ func (s *EmbeddingService) FindClosest(
 	case string(model.SearchTypeL2):
 		return s.findClosestL2(embedding, threshold, closestCount)
 	case string(model.SearchTypeCosine):
-		return s.findClosestCosine(embedding, threshold, closestCount)
+		start := time.Now()
+
+		embs, err := s.findClosestCosine(embedding, threshold, closestCount)
+		if err != nil {
+			return nil, err
+		}
+
+		diff := time.Since(start)
+		zap.L().Info("time to find closest cosine embeddings: ", zap.Int64("service", diff.Microseconds()))
+
+		return embs, nil
 	default:
 		return nil, apperrors.ErrInvalidSearchType
 	}
@@ -52,6 +65,6 @@ func (s *EmbeddingService) FindMatching(
 	}
 }
 
-func (s *EmbeddingService) GetAll() ([]model.Embedding, error) {
+func (s *EmbeddingService) GetAll() []model.Embedding {
 	return s.embeddingRepo.GetAll()
 }

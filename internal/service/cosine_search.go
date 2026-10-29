@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"time"
 
 	"github.com/Zrossiz/mylvus/internal/model"
+	"go.uber.org/zap"
 )
 
 func (s *EmbeddingService) findClosestCosine(
@@ -13,10 +15,12 @@ func (s *EmbeddingService) findClosestCosine(
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll()
-	if err != nil {
-		return nil, err
-	}
+	start := time.Now()
+
+	embs := s.GetAll()
+
+	diff := time.Since(start)
+	zap.L().Info("time to get embeddings: ", zap.Int64("repo", diff.Microseconds()))
 
 	var matching []model.EmbeddingWithScore
 	for i := 0; i < len(embs) && closestCount > 0; i++ {
@@ -54,10 +58,7 @@ func (s *EmbeddingService) findMatchingCosine(
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll()
-	if err != nil {
-		return nil, err
-	}
+	embs := s.GetAll()
 
 	var result []model.EmbeddingWithScore
 	for i := 0; i < len(embs) && closestCount > 0; i++ {
