@@ -26,7 +26,7 @@ func (s *EmbeddingService) FindClosest(
 	embedding []float32,
 	threshold float32,
 	closestCount int,
-) ([]model.Embedding, error) {
+) ([]model.EmbeddingWithScore, error) {
 	switch s.cfg.SearchMethod {
 	case string(model.SearchTypeL2):
 		return s.findClosestL2(embedding, threshold, closestCount)
@@ -41,7 +41,7 @@ func (s *EmbeddingService) FindMatching(
 	embedding []float32,
 	threshold float32,
 	closestCount int,
-) ([]model.Embedding, error) {
+) ([]model.EmbeddingWithScore, error) {
 	switch s.cfg.SearchMethod {
 	case string(model.SearchTypeL2):
 		return s.findMatchingL2(embedding, threshold, closestCount)

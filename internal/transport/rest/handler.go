@@ -12,10 +12,13 @@ type Handler struct {
 	embeddingSrv transport.EmbeddingService
 }
 
-func New(r chi.Router, srv *service.Service) {
-	h := Handler{}
+func New(r chi.Router, cfg config.Embedding, srv *service.Service) {
+	h := Handler{
+		cfg:          cfg,
+		embeddingSrv: srv.Embedding,
+	}
 
 	r.Post("/api/v1/embedding", h.Create)
-	r.Get("/api/v1/embedding/closest", h.FindClosest)
-	r.Get("/api/v1/embedding/matchind", h.FindMatching)
+	r.Post("/api/v1/embedding/closest", h.FindClosest)
+	r.Post("/api/v1/embedding/matching", h.FindMatching)
 }

@@ -6,6 +6,7 @@ type createEmbeddingDTO struct {
 }
 
 type findEmbeddingsDTO struct {
-	SearchMethod string    `json:"search_method"`
+	ClosestCount int       `json:"closest_count"`
+	Threshold    float32   `json:"threshold"`
 	Vector       []float32 `json:"vector"`
 }

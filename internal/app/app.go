@@ -30,7 +30,7 @@ func Start() error {
 	srv := service.New(cfg, repo)
 
 	r := chi.NewRouter()
-	rest.New(r, srv)
+	rest.New(r, cfg.Embedding, srv)
 
 	zap.L().Sugar().Infof("starting server on %s:%s", cfg.Server.Address, cfg.Server.Port)
 	address := fmt.Sprintf("%s:%s", cfg.Server.Address, cfg.Server.Port)

@@ -21,6 +21,6 @@ type Embedding struct {
 }
 
 type EmbeddingWithScore struct {
-	Embedding Embedding
-	Score     float64
+	Embedding Embedding `json:"embedding"`
+	Score     float64   `json:"score"`
 }

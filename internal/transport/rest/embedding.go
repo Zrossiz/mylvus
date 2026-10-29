@@ -18,6 +18,7 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	if len(body.Vector) != h.cfg.Length {
 		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
@@ -41,9 +42,58 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
+	var body findEmbeddingsDTO
+
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if len(body.Vector) != h.cfg.Length {
+		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
+		return
+	}
+
+	embs, err := h.embeddingSrv.FindMatching(body.Vector, body.Threshold, body.ClosestCount)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(embs)
 
 }
 
 func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
+	var body findEmbeddingsDTO
 
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	if len(body.Vector) != h.cfg.Length {
+		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
+		return
+	}
+
+	embs, err := h.embeddingSrv.FindClosest(body.Vector, body.Threshold, body.ClosestCount)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for i := range embs {
+		embs[i].Embedding.Vector = []float32{}
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	rw.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(rw).Encode(embs)
 }

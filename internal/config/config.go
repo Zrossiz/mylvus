@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -34,7 +33,7 @@ type Embedding struct {
 }
 
 func New() (*Config, error) {
-	data, err := os.ReadFile("/Users/zrossiz/Desktop/mylvus/config/dev.yaml")
+	data, err := os.ReadFile("/Users/zrossiz/Desktop/vectorDB/mylvus/config/dev.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +43,6 @@ func New() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(cfg)
 
 	return &cfg, nil
 }
