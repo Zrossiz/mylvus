@@ -19,7 +19,9 @@ type App struct {
 }
 
 type Repository struct {
-	JSONFilePath string `yaml:"json_file_path"`
+	JSONFilePath   string `yaml:"json_file_path"`
+	BinaryFilePath string `yaml:"binary_file_path"`
+	SQLFilePath    string `yaml:"binary_file_path"`
 }
 
 type Server struct {

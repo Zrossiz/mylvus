@@ -1,24 +1,26 @@
-package jsonfile
+package repository
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/Zrossiz/mylvus/internal/apperrors"
 	"github.com/Zrossiz/mylvus/internal/config"
 	"github.com/Zrossiz/mylvus/internal/model"
 )
 
-type EmbeddingRepository struct {
+type JSONEmbeddingRepository struct {
 	cfg      config.Embedding
 	filepath string
 
+	mu   sync.RWMutex
 	data []model.Embedding
 }
 
-func NewEmbeddingRepository(filepath string, cfg config.Embedding) (*EmbeddingRepository, error) {
-	repo := EmbeddingRepository{
+func NewJSONRepository(filepath string, cfg config.Embedding) (*JSONEmbeddingRepository, error) {
+	repo := JSONEmbeddingRepository{
 		filepath: filepath,
 		cfg:      cfg,
 		data:     make([]model.Embedding, 0),
@@ -33,7 +35,10 @@ func NewEmbeddingRepository(filepath string, cfg config.Embedding) (*EmbeddingRe
 	return &repo, nil
 }
 
-func (r *EmbeddingRepository) Create(embedding model.Embedding) error {
+func (r *JSONEmbeddingRepository) Create(embedding model.Embedding) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	if r.cfg.Length != len(embedding.Vector) {
 		return apperrors.ErrInvalidEmbeddingLen
 	}
@@ -57,14 +62,19 @@ func (r *EmbeddingRepository) Create(embedding model.Embedding) error {
 	encoder.SetIndent("", " ")
 	encoder.Encode(embeddings)
 
+	r.data = embeddings
+
 	return nil
 }
 
-func (r *EmbeddingRepository) GetAll() []model.Embedding {
+func (r *JSONEmbeddingRepository) GetAll() []model.Embedding {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	return r.data
 }
 
-func (r *EmbeddingRepository) GetAllFromDisk() ([]model.Embedding, error) {
+func (r *JSONEmbeddingRepository) GetAllFromDisk() ([]model.Embedding, error) {
 	file, err := os.OpenFile(r.filepath, os.O_RDWR, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("open json file err: %w", err)
@@ -74,7 +84,7 @@ func (r *EmbeddingRepository) GetAllFromDisk() ([]model.Embedding, error) {
 	return r.getAllByFile(file)
 }
 
-func (r *EmbeddingRepository) getAllByFile(file *os.File) ([]model.Embedding, error) {
+func (r *JSONEmbeddingRepository) getAllByFile(file *os.File) ([]model.Embedding, error) {
 	var embeddings []model.Embedding
 	decoder := json.NewDecoder(file)
 	err := decoder.Decode(&embeddings)

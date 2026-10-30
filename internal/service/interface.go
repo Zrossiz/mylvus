@@ -7,5 +7,5 @@ import (
 type EmbeddingRepository interface {
 	Create(embedding model.Embedding) error
 	GetAll() []model.Embedding
-	GetAllFromDisk() ([]model.Embedding, error)
+	// GetAllFromDisk() ([]model.Embedding, error)
 }
