@@ -1,10 +1,10 @@
 create table if not exists embeddings_meta (
-    id integer primary key,
+    id uuid primary key,
     value text not null,
     offset int not null unique,
     created_at timestamp not null
 );
 
-create table if not exists free_offset (
+create table if not exists free_offsets (
     offset bigint primary key
 );

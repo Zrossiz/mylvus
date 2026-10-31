@@ -17,7 +17,10 @@ func (s *EmbeddingService) findClosestCosine(
 ) ([]model.EmbeddingWithScore, error) {
 	start := time.Now()
 
-	embs := s.GetAll()
+	embs, err := s.GetAll()
+	if err != nil {
+		return nil, err
+	}
 
 	diff := time.Since(start)
 	zap.L().Info("time to get embeddings: ", zap.Int64("repo", diff.Microseconds()))
@@ -58,7 +61,10 @@ func (s *EmbeddingService) findMatchingCosine(
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs := s.GetAll()
+	embs, err := s.GetAll()
+	if err != nil {
+		return nil, err
+	}
 
 	var result []model.EmbeddingWithScore
 	for i := 0; i < len(embs) && closestCount > 0; i++ {

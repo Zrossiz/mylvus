@@ -94,10 +94,6 @@ func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
 	diff := time.Since(start)
 	zap.L().Info("time to find closest transport cosine embeddings: ", zap.Int64("transport", diff.Microseconds()))
 
-	for i := range embs {
-		embs[i].Embedding.Vector = []float32{}
-	}
-
 	rw.WriteHeader(http.StatusOK)
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(embs)

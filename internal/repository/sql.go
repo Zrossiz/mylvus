@@ -4,8 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/Zrossiz/mylvus/internal/model"
+	"github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type SQLMetaRepository struct {
@@ -23,28 +26,55 @@ func NewSQLMetaRepository(filepath string) (*SQLMetaRepository, error) {
 	}, nil
 }
 
-func (r *SQLMetaRepository) Create() error {
+func (r *SQLMetaRepository) Create(meta model.EmbeddingMeta) error {
+	_, err := r.conn.Exec(`
+		insert into embeddings_meta (
+			id,
+			value,
+			offset,
+			created_at
+		) values ($1, $2, $3, $4);
+	`, uuid.New(), meta.Value, meta.Offset, time.Now())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (r *SQLMetaRepository) Delete() error {
+func (r *SQLMetaRepository) Delete(id int64, offset int64) error {
+	_, err := r.conn.Exec(`delete from embeddings_meta where id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	err = r.CreateFreeOffset(offset)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (r *SQLMetaRepository) CreateFreeOffset() error {
+func (r *SQLMetaRepository) CreateFreeOffset(offset int64) error {
+	_, err := r.conn.Exec(`insert into free_offsets (offset) values ($1);`, offset)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (r *SQLMetaRepository) GetFreeOffset() (*int64, error) {
 	row := r.conn.QueryRow(`
-		DELETE FROM free_offsets
-		WHERE offset = (
-			SELECT offset
-			FROM free_offsets
-			ORDER BY offset
-			LIMIT 1
+		delete from free_offsets
+		where offset = (
+			select offset
+			from free_offsets
+			order by offset
+			limit 1
 		)
-		RETURNING offset;
+		returning offset;
 	`)
 
 	var result int64

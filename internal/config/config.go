@@ -21,12 +21,12 @@ type App struct {
 type Repository struct {
 	JSONFilePath   string `yaml:"json_file_path"`
 	BinaryFilePath string `yaml:"binary_file_path"`
-	SQLFilePath    string `yaml:"binary_file_path"`
+	SQLFilePath    string `yaml:"sql_file_path"`
 }
 
 type Server struct {
-	Address string
-	Port    string
+	Address string `yaml:"address"`
+	Port    string `yaml:"port"`
 }
 
 type Embedding struct {

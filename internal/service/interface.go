@@ -6,6 +6,6 @@ import (
 
 type EmbeddingRepository interface {
 	Create(embedding model.Embedding) error
-	GetAll() []model.Embedding
+	GetAll() ([]model.Embedding, error)
 	// GetAllFromDisk() ([]model.Embedding, error)
 }

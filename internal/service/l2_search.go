@@ -13,7 +13,10 @@ func (s *EmbeddingService) findClosestL2(
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs := s.GetAll()
+	embs, err := s.GetAll()
+	if err != nil {
+		return nil, err
+	}
 
 	var matching []model.EmbeddingWithScore
 	for i := 0; i < len(embs) && closestCount > 0; i++ {
@@ -51,7 +54,10 @@ func (s *EmbeddingService) findMatchingL2(
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs := s.GetAll()
+	embs, err := s.GetAll()
+	if err != nil {
+		return nil, err
+	}
 
 	var result []model.EmbeddingWithScore
 	for i := 0; i < len(embs) && closestCount > 0; i++ {

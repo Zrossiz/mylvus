@@ -65,6 +65,6 @@ func (s *EmbeddingService) FindMatching(
 	}
 }
 
-func (s *EmbeddingService) GetAll() []model.Embedding {
+func (s *EmbeddingService) GetAll() ([]model.Embedding, error) {
 	return s.embeddingRepo.GetAll()
 }

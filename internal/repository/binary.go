@@ -20,27 +20,27 @@ func NewBinaryEmbeddingRepository(filepath string, embLen int) *BinaryEmbeddingR
 	return &repo
 }
 
-func (r *BinaryEmbeddingRepository) InsertAtOffset(embedding []float32, offset int64) (int64, error) {
+func (r *BinaryEmbeddingRepository) InsertAtOffset(embedding []float32, offset int64) error {
 	file, err := os.OpenFile(
 		r.filepath,
 		os.O_RDWR|os.O_CREATE,
 		0644,
 	)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer file.Close()
 
-	ofst, err := file.Seek(offset, io.SeekStart)
+	_, err = file.Seek(offset, io.SeekStart)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	if err := binary.Write(file, binary.LittleEndian, embedding); err != nil {
-		return 0, err
+		return err
 	}
 
-	return ofst, nil
+	return nil
 }
 
 func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, error) {
@@ -54,7 +54,7 @@ func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, err
 	}
 	defer file.Close()
 
-	offset, err := file.Seek(0, io.SeekEnd)
+	_, err = file.Seek(0, io.SeekEnd)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +63,12 @@ func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, err
 		return 0, err
 	}
 
-	return offset, nil
+	endOffset, err := file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return 0, err
+	}
+
+	return endOffset, nil
 }
 
 func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(offset int64) ([]float32, error) {

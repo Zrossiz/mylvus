@@ -21,9 +21,9 @@ type Embedding struct {
 }
 
 type EmbeddingMeta struct {
-	ID        int       `json:"id"`
+	ID        uuid.UUID `json:"id"`
 	Value     string    `json:"value"`
-	Offset    int       `json:"offset"`
+	Offset    int64     `json:"offset"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

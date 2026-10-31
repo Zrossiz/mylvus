@@ -67,11 +67,11 @@ func (r *JSONEmbeddingRepository) Create(embedding model.Embedding) error {
 	return nil
 }
 
-func (r *JSONEmbeddingRepository) GetAll() []model.Embedding {
+func (r *JSONEmbeddingRepository) GetAll() ([]model.Embedding, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return r.data
+	return r.data, nil
 }
 
 func (r *JSONEmbeddingRepository) GetAllFromDisk() ([]model.Embedding, error) {
