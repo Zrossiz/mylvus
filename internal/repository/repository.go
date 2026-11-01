@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/Zrossiz/mylvus/internal/config"
@@ -9,6 +10,8 @@ import (
 
 type Repository struct {
 	Embedding EmbeddingRepo
+
+	conn *sql.DB
 }
 
 func New(cfg *config.Config) (*Repository, error) {
@@ -41,4 +44,12 @@ func New(cfg *config.Config) (*Repository, error) {
 	}
 
 	return &repo, nil
+}
+
+func (r *Repository) Close() error {
+	if r.conn != nil {
+		return r.conn.Close()
+	}
+
+	return nil
 }

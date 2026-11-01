@@ -2,15 +2,24 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/Zrossiz/mylvus/internal/app"
 )
 
 func main() {
-	err := app.Start()
+	a, err := app.New()
 	if err != nil {
-		log.Printf("start app err: %v", err)
-		os.Exit(1)
+		log.Fatalf("init app err: %v", err)
+
+	}
+
+	err = a.Start()
+	if err != nil {
+		log.Fatalf("start app err: %v", err)
+	}
+
+	err = a.Wait()
+	if err != nil {
+		log.Fatalf("stop app err: %v", err)
 	}
 }
