@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateEmbedding(rw http.ResponseWriter, r *http.Request) {
 	var body createEmbeddingDTO
 
 	err := json.NewDecoder(r.Body).Decode(&body)
@@ -21,16 +20,18 @@ func (h *Handler) Create(rw http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if len(body.Vector) != h.cfg.Length {
-		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
+	parsedUUID, err := uuid.Parse(body.CollectionID)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	emb := model.Embedding{
-		ID:        uuid.New(),
-		Value:     body.Value,
-		Vector:    body.Vector,
-		CreatedAt: time.Now(),
+		ID:           uuid.New(),
+		CollectionID: parsedUUID,
+		Value:        body.Value,
+		Vector:       body.Vector,
+		CreatedAt:    time.Now(),
 	}
 
 	err = h.embeddingSrv.Create(emb)
@@ -51,11 +52,6 @@ func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
-	if len(body.Vector) != h.cfg.Length {
-		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
-		return
-	}
 
 	embs, err := h.embeddingSrv.FindMatching(body.Vector, body.Threshold, body.ClosestCount)
 	if err != nil {
@@ -79,11 +75,6 @@ func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
-	if len(body.Vector) != h.cfg.Length {
-		http.Error(rw, fmt.Sprintf("len of vector must be equal: %v", h.cfg.Length), http.StatusBadRequest)
-		return
-	}
 
 	embs, err := h.embeddingSrv.FindClosest(body.Vector, body.Threshold, body.ClosestCount)
 	if err != nil {

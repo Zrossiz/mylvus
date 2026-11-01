@@ -8,13 +8,11 @@ import (
 
 type BinaryEmbeddingRepository struct {
 	filepath string
-	embLen   int
 }
 
-func NewBinaryEmbeddingRepository(filepath string, embLen int) *BinaryEmbeddingRepository {
+func NewBinaryEmbeddingRepository(filepath string) *BinaryEmbeddingRepository {
 	repo := BinaryEmbeddingRepository{
 		filepath: filepath,
-		embLen:   embLen,
 	}
 
 	return &repo
@@ -71,14 +69,14 @@ func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, err
 	return endOffset, nil
 }
 
-func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(offset int64) ([]float32, error) {
+func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(offset, embLen int64) ([]float32, error) {
 	file, err := os.Open(r.filepath)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	embedding := make([]float32, r.embLen)
+	embedding := make([]float32, embLen)
 
 	_, err = file.Seek(offset, io.SeekStart)
 	if err != nil {

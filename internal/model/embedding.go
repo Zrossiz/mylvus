@@ -14,17 +14,19 @@ const (
 )
 
 type Embedding struct {
-	ID        uuid.UUID `json:"id"`
-	Value     string    `json:"value"`
-	Vector    []float32 `json:"vector"`
-	CreatedAt time.Time `json:"created_at"`
+	ID           uuid.UUID `json:"id"`
+	CollectionID uuid.UUID `json:"collection_id"`
+	Value        string    `json:"value"`
+	Vector       []float32 `json:"vector"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type EmbeddingMeta struct {
-	ID        uuid.UUID `json:"id"`
-	Value     string    `json:"value"`
-	Offset    int64     `json:"offset"`
-	CreatedAt time.Time `json:"created_at"`
+	ID           uuid.UUID `json:"id"`
+	CollectionID uuid.UUID `json:"collection_id"`
+	Value        string    `json:"value"`
+	Offset       int64     `json:"offset"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type EmbeddingWithScore struct {

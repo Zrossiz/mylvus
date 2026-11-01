@@ -11,30 +11,41 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const nilUUIDValue = "00000000-0000-0000-0000-000000000000"
+
 type SQLMetaRepository struct {
 	conn *sql.DB
 }
 
-func NewSQLMetaRepository(filepath string) (*SQLMetaRepository, error) {
-	conn, err := sql.Open("sqlite3", filepath)
-	if err != nil {
-		return nil, fmt.Errorf("db connect err: %w", err)
-	}
-
+func NewSQLMetaRepository(conn *sql.DB) (*SQLMetaRepository, error) {
 	return &SQLMetaRepository{
 		conn: conn,
 	}, nil
 }
 
+func Connect(filepath string) (*sql.DB, error) {
+	conn, err := sql.Open("sqlite3", filepath)
+	if err != nil {
+		return nil, fmt.Errorf("db connect err: %w", err)
+	}
+
+	return conn, nil
+}
+
 func (r *SQLMetaRepository) Create(meta model.EmbeddingMeta) error {
+	if meta.CollectionID.String() == nilUUIDValue {
+		return fmt.Errorf("collection id must be a value")
+	}
+
 	_, err := r.conn.Exec(`
 		insert into embeddings_meta (
 			id,
+			collection_id,
 			value,
 			offset,
 			created_at
-		) values ($1, $2, $3, $4);
-	`, uuid.New(), meta.Value, meta.Offset, time.Now())
+		) values ($1, $2, $3, $4, $5);
+	`, uuid.New(), meta.CollectionID, meta.Value, meta.Offset, time.Now())
 	if err != nil {
 		return err
 	}
@@ -92,6 +103,7 @@ func (r *SQLMetaRepository) GetAll() ([]model.EmbeddingMeta, error) {
 	rows, err := r.conn.Query(`
 		select
 			id,
+			collection_id,
 			value,
 			offset,
 			created_at
@@ -107,6 +119,7 @@ func (r *SQLMetaRepository) GetAll() ([]model.EmbeddingMeta, error) {
 
 		err = rows.Scan(
 			&embeddingMeta.ID,
+			&embeddingMeta.CollectionID,
 			&embeddingMeta.Value,
 			&embeddingMeta.Offset,
 			&embeddingMeta.CreatedAt,
@@ -118,8 +131,8 @@ func (r *SQLMetaRepository) GetAll() ([]model.EmbeddingMeta, error) {
 		embeddingsMeta = append(embeddingsMeta, embeddingMeta)
 	}
 
-	if rows.Err() != nil {
-
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return embeddingsMeta, nil

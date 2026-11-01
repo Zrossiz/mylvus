@@ -63,9 +63,10 @@ func (r *SQLBinaryRepository) Create(embedding model.Embedding) error {
 	}
 
 	meta := model.EmbeddingMeta{
-		Value:     embedding.Value,
-		Offset:    newOffset,
-		CreatedAt: time.Now(),
+		CollectionID: embedding.CollectionID,
+		Value:        embedding.Value,
+		Offset:       newOffset,
+		CreatedAt:    time.Now(),
 	}
 
 	err = r.sqlRepo.Create(meta)
@@ -97,16 +98,18 @@ func (r *SQLBinaryRepository) GetAllFromDisk() ([]model.Embedding, error) {
 
 	var result []model.Embedding
 	for _, v := range embeddingsMeta {
-		curVector, err := r.binaryRepo.GetEmbeddingByOffset(v.Offset)
+		// TODO: убрать хардкод
+		curVector, err := r.binaryRepo.GetEmbeddingByOffset(v.Offset, 300)
 		if err != nil {
 			return nil, err
 		}
 
 		result = append(result, model.Embedding{
-			ID:        v.ID,
-			Value:     v.Value,
-			Vector:    curVector,
-			CreatedAt: v.CreatedAt,
+			ID:           v.ID,
+			CollectionID: v.CollectionID,
+			Value:        v.Value,
+			Vector:       curVector,
+			CreatedAt:    v.CreatedAt,
 		})
 	}
 

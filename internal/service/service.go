@@ -6,11 +6,13 @@ import (
 )
 
 type Service struct {
-	Embedding *EmbeddingService
+	Embedding  *EmbeddingService
+	Collection *CollectionService
 }
 
 func New(cfg *config.Config, repo *repository.Repository) *Service {
 	return &Service{
-		Embedding: NewEmbeddingService(cfg.Embedding, repo.Embedding),
+		Collection: NewCollectionService(repo.Collection),
+		Embedding:  NewEmbeddingService(cfg.Embedding, repo.Embedding),
 	}
 }

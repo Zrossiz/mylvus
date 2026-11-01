@@ -19,7 +19,6 @@ type App struct {
 }
 
 type Repository struct {
-	JSONFilePath   string `yaml:"json_file_path"`
 	BinaryFilePath string `yaml:"binary_file_path"`
 	SQLFilePath    string `yaml:"sql_file_path"`
 }
@@ -30,7 +29,6 @@ type Server struct {
 }
 
 type Embedding struct {
-	Length       int    `yaml:"length"`
 	SearchMethod string `yaml:"search_method"`
 }
 

@@ -8,17 +8,21 @@ import (
 )
 
 type Handler struct {
-	cfg          config.Embedding
-	embeddingSrv transport.EmbeddingService
+	cfg           config.Embedding
+	embeddingSrv  transport.EmbeddingService
+	collectionSrv transport.CollectionService
 }
 
 func New(r chi.Router, cfg config.Embedding, srv *service.Service) {
 	h := Handler{
-		cfg:          cfg,
-		embeddingSrv: srv.Embedding,
+		cfg:           cfg,
+		embeddingSrv:  srv.Embedding,
+		collectionSrv: srv.Collection,
 	}
 
-	r.Post("/api/v1/embedding", h.Create)
-	r.Post("/api/v1/embedding/closest", h.FindClosest)
-	r.Post("/api/v1/embedding/matching", h.FindMatching)
+	r.Post("/api/v1/collections", h.CreateCollection)
+	r.Get("/api/v1/collections", h.GetAllCollections)
+	r.Post("/api/v1/embeddings", h.CreateEmbedding)
+	r.Post("/api/v1/embeddings/closest", h.FindClosest)
+	r.Post("/api/v1/embeddings/matching", h.FindMatching)
 }

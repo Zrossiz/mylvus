@@ -5,10 +5,8 @@ server:
   address: localhost
   port: 9000
 repository:
-  # json_file_path: /Users/zrossiz/Desktop/vectorDB/mylvus/dbs/data.json
   binary_file_path: /Users/zrossiz/Desktop/vectorDB/mylvus/dbs/data.dat
   sql_file_path: /Users/zrossiz/Desktop/vectorDB/mylvus/dbs/data.db
 
 embedding:
-  length: 300
   search_method: cosine

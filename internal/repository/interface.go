@@ -1,11 +1,21 @@
 package repository
 
-import "github.com/Zrossiz/mylvus/internal/model"
+import (
+	"context"
+
+	"github.com/Zrossiz/mylvus/internal/model"
+	"github.com/google/uuid"
+)
 
 type EmbeddingRepo interface {
 	Create(embedding model.Embedding) error
 	GetAll() ([]model.Embedding, error)
 	// GetAllFromDisk() ([]model.Embedding, error)
+}
+
+type CollectionRepo interface {
+	Create(ctx context.Context, title string, size int64) (uuid.UUID, error)
+	GetAll(ctx context.Context) ([]model.Collection, error)
 }
 
 type SQLMetaRepo interface {
@@ -17,7 +27,7 @@ type SQLMetaRepo interface {
 }
 
 type BinaryEmbeddingRepo interface {
-	GetEmbeddingByOffset(offset int64) ([]float32, error)
+	GetEmbeddingByOffset(offset, embLen int64) ([]float32, error)
 	InsertAtEnd(embedding []float32) (int64, error)
 	InsertAtOffset(embedding []float32, offset int64) error
 }
