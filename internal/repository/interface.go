@@ -14,8 +14,13 @@ type EmbeddingRepo interface {
 }
 
 type CollectionRepo interface {
-	Create(ctx context.Context, title string, size int64) (uuid.UUID, error)
+	Create(ctx context.Context, collection model.Collection) (uuid.UUID, error)
 	GetAll(ctx context.Context) ([]model.Collection, error)
+}
+
+type ConnectionRepo interface {
+	Create(collection, addr string)
+	Delete(collection, addr string)
 }
 
 type SQLMetaRepo interface {
@@ -27,7 +32,7 @@ type SQLMetaRepo interface {
 }
 
 type BinaryEmbeddingRepo interface {
-	GetEmbeddingByOffset(offset, embLen int64) ([]float32, error)
-	InsertAtEnd(embedding []float32) (int64, error)
-	InsertAtOffset(embedding []float32, offset int64) error
+	GetEmbeddingByOffset(filepath string, offset, embLen int64) ([]float32, error)
+	InsertAtEnd(filepath string, embedding []float32) (int64, error)
+	InsertAtOffset(filepath string, embedding []float32, offset int64) error
 }

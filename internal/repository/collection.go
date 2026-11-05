@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"os"
 	"time"
 
 	"github.com/Zrossiz/mylvus/internal/model"
@@ -19,21 +20,28 @@ func NewCollectionRepository(conn *sql.DB) *CollectionRepository {
 	}
 }
 
-func (r *CollectionRepository) Create(ctx context.Context, title string, size int64) (uuid.UUID, error) {
-	uid := uuid.New()
+func (r *CollectionRepository) Create(ctx context.Context, collection model.Collection) (uuid.UUID, error) {
 	_, err := r.conn.ExecContext(ctx, `
 		insert into collections (
 			id,
 			title,
 			embedding_size,
+			binary_filepath,
 			created_at
-		) values ($1, $2, $3, $4);
-	`, uid, title, size, time.Now())
+		) values ($1, $2, $3, $4, $5);
+	`,
+		collection.ID,
+		collection.Title,
+		collection.EmbeddingSize,
+		collection.BinaryFilepath,
+		time.Now(),
+	)
+
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	return uid, nil
+	return collection.ID, nil
 }
 
 func (r *CollectionRepository) GetAll(ctx context.Context) ([]model.Collection, error) {
@@ -42,6 +50,7 @@ func (r *CollectionRepository) GetAll(ctx context.Context) ([]model.Collection, 
 			id,
 			title,
 			embedding_size,
+			binary_filepath,
 			created_at
 		from collections;
 	`)
@@ -57,6 +66,7 @@ func (r *CollectionRepository) GetAll(ctx context.Context) ([]model.Collection, 
 			&collection.ID,
 			&collection.Title,
 			&collection.EmbeddingSize,
+			&collection.BinaryFilepath,
 			&collection.CreatedAt,
 		)
 		if err != nil {
@@ -71,4 +81,13 @@ func (r *CollectionRepository) GetAll(ctx context.Context) ([]model.Collection, 
 	}
 
 	return collections, nil
+}
+
+func (r *CollectionRepository) CreateBinaryFile(ctx context.Context, filepath string) error {
+	_, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

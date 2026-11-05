@@ -6,21 +6,15 @@ import (
 	"os"
 )
 
-type BinaryEmbeddingRepository struct {
-	filepath string
+type BinaryEmbeddingRepository struct{}
+
+func NewBinaryEmbeddingRepository() *BinaryEmbeddingRepository {
+	return &BinaryEmbeddingRepository{}
 }
 
-func NewBinaryEmbeddingRepository(filepath string) *BinaryEmbeddingRepository {
-	repo := BinaryEmbeddingRepository{
-		filepath: filepath,
-	}
-
-	return &repo
-}
-
-func (r *BinaryEmbeddingRepository) InsertAtOffset(embedding []float32, offset int64) error {
+func (r *BinaryEmbeddingRepository) InsertAtOffset(filepath string, embedding []float32, offset int64) error {
 	file, err := os.OpenFile(
-		r.filepath,
+		filepath,
 		os.O_RDWR|os.O_CREATE,
 		0644,
 	)
@@ -41,9 +35,9 @@ func (r *BinaryEmbeddingRepository) InsertAtOffset(embedding []float32, offset i
 	return nil
 }
 
-func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, error) {
+func (r *BinaryEmbeddingRepository) InsertAtEnd(filepath string, embedding []float32) (int64, error) {
 	file, err := os.OpenFile(
-		r.filepath,
+		filepath,
 		os.O_RDWR|os.O_CREATE,
 		0644,
 	)
@@ -69,8 +63,8 @@ func (r *BinaryEmbeddingRepository) InsertAtEnd(embedding []float32) (int64, err
 	return endOffset, nil
 }
 
-func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(offset, embLen int64) ([]float32, error) {
-	file, err := os.Open(r.filepath)
+func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(filepath string, offset, embLen int64) ([]float32, error) {
+	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
 	}

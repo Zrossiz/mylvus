@@ -47,14 +47,16 @@ func (r *SQLBinaryRepository) Create(embedding model.Embedding) error {
 
 	var newOffset int64
 	if offset != nil {
-		err = r.binaryRepo.InsertAtOffset(embedding.Vector, *offset)
+		// TODO: пустая строка
+		err = r.binaryRepo.InsertAtOffset("", embedding.Vector, *offset)
 		if err != nil {
 			return err
 		}
 
 		newOffset = *offset
 	} else {
-		endOffset, err := r.binaryRepo.InsertAtEnd(embedding.Vector)
+		// TODO: пустая строка
+		endOffset, err := r.binaryRepo.InsertAtEnd("", embedding.Vector)
 		if err != nil {
 			return err
 		}
@@ -99,7 +101,7 @@ func (r *SQLBinaryRepository) GetAllFromDisk() ([]model.Embedding, error) {
 	var result []model.Embedding
 	for _, v := range embeddingsMeta {
 		// TODO: убрать хардкод
-		curVector, err := r.binaryRepo.GetEmbeddingByOffset(v.Offset, 300)
+		curVector, err := r.binaryRepo.GetEmbeddingByOffset("", v.Offset, 300)
 		if err != nil {
 			return nil, err
 		}

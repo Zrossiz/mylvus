@@ -7,8 +7,9 @@ import (
 )
 
 type Collection struct {
-	ID            uuid.UUID `json:"id"`
-	Title         string    `json:"title"`
-	EmbeddingSize int64     `json:"embedding_size"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID             uuid.UUID `json:"id"`
+	Title          string    `json:"title"`
+	EmbeddingSize  int64     `json:"embedding_size"`
+	BinaryFilepath string    `json:"binary_filepath"`
+	CreatedAt      time.Time `json:"created_at"`
 }

@@ -13,6 +13,6 @@ type EmbeddingRepository interface {
 }
 
 type CollectionRepository interface {
-	Create(ctx context.Context, title string, size int64) (uuid.UUID, error)
+	Create(ctx context.Context, collection model.Collection) (uuid.UUID, error)
 	GetAll(ctx context.Context) ([]model.Collection, error)
 }

@@ -19,8 +19,7 @@ type App struct {
 }
 
 type Repository struct {
-	BinaryFilePath string `yaml:"binary_file_path"`
-	SQLFilePath    string `yaml:"sql_file_path"`
+	SQLFilePath string `yaml:"sql_filepath"`
 }
 
 type Server struct {

@@ -2,6 +2,7 @@ create table if not exists collections (
     id uuid primary key,
     title text not null,
     embedding_size integer not null,
+    binary_filepath text not null,
     created_at timestamp not null
 );
 
