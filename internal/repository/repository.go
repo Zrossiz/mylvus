@@ -8,7 +8,7 @@ import (
 
 type Repository struct {
 	Embedding  EmbeddingRepo
-	Collection CollectionRepo
+	Collection SQLCollectionRepo
 
 	conn *sql.DB
 }
@@ -21,19 +21,19 @@ func New(cfg *config.Config) (*Repository, error) {
 
 	var repo Repository
 
-	sqlRepo, err := NewSQLMetaRepository(conn)
+	sqlMetaRepo, err := NewSQLMetaRepository(conn)
 	if err != nil {
 		return nil, err
 	}
 
 	binaryRepo := NewBinaryEmbeddingRepository()
-	combinedRepo, err := NewSQLBinaryRepository(sqlRepo, binaryRepo)
+	repo.Collection = NewCollectionRepository(conn)
+	combinedRepo, err := NewSQLBinaryRepository(sqlMetaRepo, binaryRepo, repo.Collection)
 	if err != nil {
 		return nil, err
 	}
 
 	repo.Embedding = combinedRepo
-	repo.Collection = NewCollectionRepository(conn)
 
 	return &repo, nil
 }

@@ -9,19 +9,14 @@ import (
 
 type EmbeddingRepo interface {
 	Create(ctx context.Context, collection model.Collection, embedding model.Embedding) error
-	GetAll(collectionTitle string) ([]model.Embedding, error)
+	GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error)
 	GetAllFromDisk(ctx context.Context, collectiont model.Collection) ([]model.Embedding, error)
 }
 
-type CollectionRepo interface {
+type SQLCollectionRepo interface {
 	Create(ctx context.Context, collection model.Collection) (uuid.UUID, error)
 	GetByTitle(ctx context.Context, title string) (*model.Collection, error)
 	CreateBinaryFile(ctx context.Context, title string) (string, error)
-}
-
-type ConnectionRepo interface {
-	Create(collection, addr string)
-	Delete(collection, addr string)
 }
 
 type SQLMetaRepo interface {

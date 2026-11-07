@@ -9,7 +9,7 @@ import (
 
 type EmbeddingRepository interface {
 	Create(ctx context.Context, collection model.Collection, embedding model.Embedding) error
-	GetAll(collectionTitle string) ([]model.Embedding, error)
+	GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error)
 }
 
 type CollectionRepository interface {

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -10,21 +9,24 @@ import (
 )
 
 type SQLBinaryRepository struct {
-	sqlRepo    SQLMetaRepo
-	binaryRepo BinaryEmbeddingRepo
+	sqlMetaRepo       SQLMetaRepo
+	sqlCollectionRepo SQLCollectionRepo
+	binaryRepo        BinaryEmbeddingRepo
 
 	mu   sync.RWMutex
 	data map[string][]model.Embedding
 }
 
 func NewSQLBinaryRepository(
-	sqlRepo SQLMetaRepo,
+	sqlMetaRepo SQLMetaRepo,
 	binaryRepo BinaryEmbeddingRepo,
+	sqlCollectionRepo SQLCollectionRepo,
 ) (*SQLBinaryRepository, error) {
 	repo := SQLBinaryRepository{
-		sqlRepo:    sqlRepo,
-		binaryRepo: binaryRepo,
-		data:       make(map[string][]model.Embedding),
+		sqlMetaRepo:       sqlMetaRepo,
+		binaryRepo:        binaryRepo,
+		sqlCollectionRepo: sqlCollectionRepo,
+		data:              make(map[string][]model.Embedding),
 	}
 
 	return &repo, nil
@@ -34,7 +36,7 @@ func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Colle
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	offset, err := r.sqlRepo.GetFreeOffset(ctx, collection.ID)
+	offset, err := r.sqlMetaRepo.GetFreeOffset(ctx, collection.ID)
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Colle
 		CreatedAt:    time.Now(),
 	}
 
-	err = r.sqlRepo.Create(ctx, meta)
+	err = r.sqlMetaRepo.Create(ctx, meta)
 	if err != nil {
 		return err
 	}
@@ -79,20 +81,42 @@ func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Colle
 	return nil
 }
 
-func (r *SQLBinaryRepository) GetAll(collectionTitle string) ([]model.Embedding, error) {
+func (r *SQLBinaryRepository) GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	embs, ok := r.data[collectionTitle]
-	if !ok {
-		return nil, fmt.Errorf("collection title not exist: %s", collectionTitle)
+	embs, _ := r.data[collectionTitle]
+
+	if len(embs) != 0 {
+		return embs, nil
+	}
+
+	diskEmbs, err := r.GetAllFromDiskByTitle(ctx, collectionTitle)
+	if err != nil {
+		return nil, err
+	}
+
+	r.data[collectionTitle] = diskEmbs
+
+	return embs, nil
+}
+
+func (r *SQLBinaryRepository) GetAllFromDiskByTitle(ctx context.Context, collectionTitle string) ([]model.Embedding, error) {
+	collection, err := r.sqlCollectionRepo.GetByTitle(ctx, collectionTitle)
+	if err != nil {
+		return nil, err
+	}
+
+	embs, err := r.GetAllFromDisk(ctx, *collection)
+	if err != nil {
+		return nil, err
 	}
 
 	return embs, nil
 }
 
 func (r *SQLBinaryRepository) GetAllFromDisk(ctx context.Context, collection model.Collection) ([]model.Embedding, error) {
-	embeddingsMeta, err := r.sqlRepo.GetAll(ctx, collection.ID)
+	embeddingsMeta, err := r.sqlMetaRepo.GetAll(ctx, collection.ID)
 	if err != nil {
 		return nil, err
 	}

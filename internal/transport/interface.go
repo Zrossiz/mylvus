@@ -11,7 +11,7 @@ type EmbeddingService interface {
 	Create(ctx context.Context, collection string, embedding model.Embedding) error
 	FindClosest(ctx context.Context, collectionTitle string, embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
 	FindMatching(ctx context.Context, collectionTitle string, embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
-	GetAll(collectionTitle string) ([]model.Embedding, error)
+	GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error)
 }
 
 type CollectionService interface {

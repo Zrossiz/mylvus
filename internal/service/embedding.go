@@ -48,11 +48,11 @@ func (s *EmbeddingService) FindClosest(
 ) ([]model.EmbeddingWithScore, error) {
 	switch s.cfg.SearchMethod {
 	case string(model.SearchTypeL2):
-		return s.findClosestL2(collectionTitle, embedding, threshold, closestCount)
+		return s.findClosestL2(ctx, collectionTitle, embedding, threshold, closestCount)
 	case string(model.SearchTypeCosine):
 		start := time.Now()
 
-		embs, err := s.findClosestCosine(collectionTitle, embedding, threshold, closestCount)
+		embs, err := s.findClosestCosine(ctx, collectionTitle, embedding, threshold, closestCount)
 		if err != nil {
 			return nil, err
 		}
@@ -75,14 +75,14 @@ func (s *EmbeddingService) FindMatching(
 ) ([]model.EmbeddingWithScore, error) {
 	switch s.cfg.SearchMethod {
 	case string(model.SearchTypeL2):
-		return s.findMatchingL2(collectionTitle, embedding, threshold, closestCount)
+		return s.findMatchingL2(ctx, collectionTitle, embedding, threshold, closestCount)
 	case string(model.SearchTypeCosine):
-		return s.findMatchingCosine(collectionTitle, embedding, threshold, closestCount)
+		return s.findMatchingCosine(ctx, collectionTitle, embedding, threshold, closestCount)
 	default:
 		return nil, apperrors.ErrInvalidSearchType
 	}
 }
 
-func (s *EmbeddingService) GetAll(collectionTitle string) ([]model.Embedding, error) {
-	return s.embeddingRepo.GetAll(collectionTitle)
+func (s *EmbeddingService) GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error) {
+	return s.embeddingRepo.GetAll(ctx, collectionTitle)
 }

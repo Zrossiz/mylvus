@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sort"
@@ -11,6 +12,7 @@ import (
 )
 
 func (s *EmbeddingService) findClosestCosine(
+	ctx context.Context,
 	collectionTitle string,
 	embedding []float32,
 	threshold float32,
@@ -18,7 +20,7 @@ func (s *EmbeddingService) findClosestCosine(
 ) ([]model.EmbeddingWithScore, error) {
 	start := time.Now()
 
-	embs, err := s.GetAll(collectionTitle)
+	embs, err := s.GetAll(ctx, collectionTitle)
 	if err != nil {
 		return nil, err
 	}
@@ -58,12 +60,13 @@ func (s *EmbeddingService) findClosestCosine(
 }
 
 func (s *EmbeddingService) findMatchingCosine(
+	ctx context.Context,
 	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll(collectionTitle)
+	embs, err := s.GetAll(ctx, collectionTitle)
 	if err != nil {
 		return nil, err
 	}

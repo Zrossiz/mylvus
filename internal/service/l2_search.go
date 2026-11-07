@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sort"
@@ -9,12 +10,13 @@ import (
 )
 
 func (s *EmbeddingService) findClosestL2(
+	ctx context.Context,
 	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll(collectionTitle)
+	embs, err := s.GetAll(ctx, collectionTitle)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +53,13 @@ func (s *EmbeddingService) findClosestL2(
 }
 
 func (s *EmbeddingService) findMatchingL2(
+	ctx context.Context,
 	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll(collectionTitle)
+	embs, err := s.GetAll(ctx, collectionTitle)
 	if err != nil {
 		return nil, err
 	}

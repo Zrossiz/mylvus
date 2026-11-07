@@ -64,5 +64,12 @@ func New() (*Config, error) {
 		return nil, err
 	}
 
+	curDBDir, err := helpers.WithBasePath("dbs")
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.Repository.SQLFilePath = fmt.Sprintf("%s/%s", curDBDir, cfg.Repository.SQLFilePath)
+
 	return &cfg, nil
 }
