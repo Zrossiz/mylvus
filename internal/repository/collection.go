@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Zrossiz/mylvus/internal/helpers"
 	"github.com/Zrossiz/mylvus/internal/model"
 	"github.com/google/uuid"
 )
@@ -73,9 +74,13 @@ func (r *CollectionRepository) GetByTitle(ctx context.Context, title string) (*m
 }
 
 func (r *CollectionRepository) CreateBinaryFile(ctx context.Context, title string) (string, error) {
-	// TODO: форматировать путь хранения данных
-	filepath := fmt.Sprintf("/Users/zrossiz/Desktop/vectorDB/mylvus/dbs/%s.dat", title)
-	_, err := os.Create(filepath)
+	curDir, err := helpers.WithBasePath("dbs")
+	if err != nil {
+		return "", err
+	}
+
+	filepath := fmt.Sprintf("%s/%s.dat", curDir, title)
+	_, err = os.Create(filepath)
 	if err != nil {
 		return "", err
 	}

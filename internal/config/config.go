@@ -1,8 +1,12 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"os"
+	"strings"
 
+	"github.com/Zrossiz/mylvus/internal/helpers"
 	"gopkg.in/yaml.v3"
 )
 
@@ -32,7 +36,24 @@ type Embedding struct {
 }
 
 func New() (*Config, error) {
-	data, err := os.ReadFile("/Users/zrossiz/Desktop/vectorDB/mylvus/config/dev.yaml")
+	configsPath, err := helpers.WithBasePath("configs")
+	if err != nil {
+		return nil, fmt.Errorf("base path for public: %w", err)
+	}
+
+	env := os.Getenv("GOLANG_ENV")
+	if env == "" {
+		env = "development"
+	} else {
+		env = strings.ToLower(env)
+	}
+
+	filename := fmt.Sprintf("%s/%s.yml", configsPath, env)
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		filename = configsPath + "/dev.yaml"
+	}
+
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
