@@ -6,12 +6,15 @@ import (
 	"time"
 
 	"github.com/Zrossiz/mylvus/internal/model"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 func (h *Handler) CreateEmbedding(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var body createEmbeddingDTO
+	collectionTitle := chi.URLParam(r, "title")
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -20,21 +23,14 @@ func (h *Handler) CreateEmbedding(rw http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	parsedUUID, err := uuid.Parse(body.CollectionID)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	emb := model.Embedding{
-		ID:           uuid.New(),
-		CollectionID: parsedUUID,
-		Value:        body.Value,
-		Vector:       body.Vector,
-		CreatedAt:    time.Now(),
+		ID:        uuid.New(),
+		Value:     body.Value,
+		Vector:    body.Vector,
+		CreatedAt: time.Now(),
 	}
 
-	err = h.embeddingSrv.Create(emb)
+	err = h.embeddingSrv.Create(ctx, collectionTitle, emb)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,7 +40,9 @@ func (h *Handler) CreateEmbedding(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var body findEmbeddingsDTO
+	collectionTitle := chi.URLParam(r, "title")
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
@@ -53,7 +51,7 @@ func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	embs, err := h.embeddingSrv.FindMatching(body.Vector, body.Threshold, body.ClosestCount)
+	embs, err := h.embeddingSrv.FindMatching(ctx, collectionTitle, body.Vector, body.Threshold, body.ClosestCount)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -66,6 +64,8 @@ func (h *Handler) FindMatching(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
+	collectionTitle := chi.URLParam(r, "title")
+	ctx := r.Context()
 	var body findEmbeddingsDTO
 	start := time.Now()
 
@@ -76,7 +76,7 @@ func (h *Handler) FindClosest(rw http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	embs, err := h.embeddingSrv.FindClosest(body.Vector, body.Threshold, body.ClosestCount)
+	embs, err := h.embeddingSrv.FindClosest(ctx, collectionTitle, body.Vector, body.Threshold, body.ClosestCount)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return

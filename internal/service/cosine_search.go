@@ -11,13 +11,14 @@ import (
 )
 
 func (s *EmbeddingService) findClosestCosine(
+	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
 	start := time.Now()
 
-	embs, err := s.GetAll()
+	embs, err := s.GetAll(collectionTitle)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +58,12 @@ func (s *EmbeddingService) findClosestCosine(
 }
 
 func (s *EmbeddingService) findMatchingCosine(
+	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll()
+	embs, err := s.GetAll(collectionTitle)
 	if err != nil {
 		return nil, err
 	}

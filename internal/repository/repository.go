@@ -9,7 +9,6 @@ import (
 type Repository struct {
 	Embedding  EmbeddingRepo
 	Collection CollectionRepo
-	Connection ConnectionRepo
 
 	conn *sql.DB
 }
@@ -35,7 +34,6 @@ func New(cfg *config.Config) (*Repository, error) {
 
 	repo.Embedding = combinedRepo
 	repo.Collection = NewCollectionRepository(conn)
-	repo.Connection = NewConnectionRepository()
 
 	return &repo, nil
 }

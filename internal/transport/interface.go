@@ -8,12 +8,12 @@ import (
 )
 
 type EmbeddingService interface {
-	Create(embedding model.Embedding) error
-	FindClosest(embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
-	FindMatching(embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
+	Create(ctx context.Context, collection string, embedding model.Embedding) error
+	FindClosest(ctx context.Context, collectionTitle string, embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
+	FindMatching(ctx context.Context, collectionTitle string, embedding []float32, threshold float32, closestCount int) ([]model.EmbeddingWithScore, error)
+	GetAll(collectionTitle string) ([]model.Embedding, error)
 }
 
 type CollectionService interface {
-	Create(ctx context.Context, title string, size int64) (uuid.UUID, error)
-	GetAll(ctx context.Context) ([]model.Collection, error)
+	Create(ctx context.Context, collection model.Collection) (uuid.UUID, error)
 }

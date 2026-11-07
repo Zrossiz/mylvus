@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -12,7 +14,7 @@ type SQLBinaryRepository struct {
 	binaryRepo BinaryEmbeddingRepo
 
 	mu   sync.RWMutex
-	data []model.Embedding
+	data map[string][]model.Embedding
 }
 
 func NewSQLBinaryRepository(
@@ -22,23 +24,17 @@ func NewSQLBinaryRepository(
 	repo := SQLBinaryRepository{
 		sqlRepo:    sqlRepo,
 		binaryRepo: binaryRepo,
+		data:       make(map[string][]model.Embedding),
 	}
-
-	embs, err := repo.GetAllFromDisk()
-	if err != nil {
-		return nil, err
-	}
-
-	repo.data = embs
 
 	return &repo, nil
 }
 
-func (r *SQLBinaryRepository) Create(embedding model.Embedding) error {
+func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Collection, embedding model.Embedding) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	offset, err := r.sqlRepo.GetFreeOffset()
+	offset, err := r.sqlRepo.GetFreeOffset(ctx, collection.ID)
 	if err != nil {
 		return err
 	}
@@ -47,16 +43,14 @@ func (r *SQLBinaryRepository) Create(embedding model.Embedding) error {
 
 	var newOffset int64
 	if offset != nil {
-		// TODO: пустая строка
-		err = r.binaryRepo.InsertAtOffset("", embedding.Vector, *offset)
+		err = r.binaryRepo.InsertAtOffset(collection.BinaryFilepath, embedding.Vector, *offset)
 		if err != nil {
 			return err
 		}
 
 		newOffset = *offset
 	} else {
-		// TODO: пустая строка
-		endOffset, err := r.binaryRepo.InsertAtEnd("", embedding.Vector)
+		endOffset, err := r.binaryRepo.InsertAtEnd(collection.BinaryFilepath, embedding.Vector)
 		if err != nil {
 			return err
 		}
@@ -71,37 +65,41 @@ func (r *SQLBinaryRepository) Create(embedding model.Embedding) error {
 		CreatedAt:    time.Now(),
 	}
 
-	err = r.sqlRepo.Create(meta)
+	err = r.sqlRepo.Create(ctx, meta)
 	if err != nil {
 		return err
 	}
 
-	embs, err := r.GetAllFromDisk()
+	embs, err := r.GetAllFromDisk(ctx, collection)
 	if err != nil {
 		return err
 	}
-	r.data = embs
+	r.data[collection.Title] = embs
 
 	return nil
 }
 
-func (r *SQLBinaryRepository) GetAll() ([]model.Embedding, error) {
+func (r *SQLBinaryRepository) GetAll(collectionTitle string) ([]model.Embedding, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return r.data, nil
+	embs, ok := r.data[collectionTitle]
+	if !ok {
+		return nil, fmt.Errorf("collection title not exist: %s", collectionTitle)
+	}
+
+	return embs, nil
 }
 
-func (r *SQLBinaryRepository) GetAllFromDisk() ([]model.Embedding, error) {
-	embeddingsMeta, err := r.sqlRepo.GetAll()
+func (r *SQLBinaryRepository) GetAllFromDisk(ctx context.Context, collection model.Collection) ([]model.Embedding, error) {
+	embeddingsMeta, err := r.sqlRepo.GetAll(ctx, collection.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []model.Embedding
 	for _, v := range embeddingsMeta {
-		// TODO: убрать хардкод
-		curVector, err := r.binaryRepo.GetEmbeddingByOffset("", v.Offset, 300)
+		curVector, err := r.binaryRepo.GetEmbeddingByOffset(collection.BinaryFilepath, v.Offset, collection.EmbeddingSize)
 		if err != nil {
 			return nil, err
 		}
@@ -114,6 +112,8 @@ func (r *SQLBinaryRepository) GetAllFromDisk() ([]model.Embedding, error) {
 			CreatedAt:    v.CreatedAt,
 		})
 	}
+
+	r.data[collection.Title] = result
 
 	return result, nil
 }

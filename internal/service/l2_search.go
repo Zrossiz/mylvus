@@ -9,11 +9,12 @@ import (
 )
 
 func (s *EmbeddingService) findClosestL2(
+	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll()
+	embs, err := s.GetAll(collectionTitle)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +51,12 @@ func (s *EmbeddingService) findClosestL2(
 }
 
 func (s *EmbeddingService) findMatchingL2(
+	collectionTitle string,
 	embedding []float32,
 	threshold float32,
 	closestCount int,
 ) ([]model.EmbeddingWithScore, error) {
-	embs, err := s.GetAll()
+	embs, err := s.GetAll(collectionTitle)
 	if err != nil {
 		return nil, err
 	}

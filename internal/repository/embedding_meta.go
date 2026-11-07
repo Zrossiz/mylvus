@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -32,12 +33,12 @@ func Connect(filepath string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (r *SQLMetaRepository) Create(meta model.EmbeddingMeta) error {
+func (r *SQLMetaRepository) Create(ctx context.Context, meta model.EmbeddingMeta) error {
 	if meta.CollectionID.String() == nilUUIDValue {
 		return fmt.Errorf("collection id must be a value")
 	}
 
-	_, err := r.conn.Exec(`
+	_, err := r.conn.ExecContext(ctx, `
 		insert into embeddings_meta (
 			id,
 			collection_id,
@@ -53,22 +54,13 @@ func (r *SQLMetaRepository) Create(meta model.EmbeddingMeta) error {
 	return nil
 }
 
-func (r *SQLMetaRepository) Delete(id int64, offset int64) error {
-	_, err := r.conn.Exec(`delete from embeddings_meta where id = $1`, id)
+func (r *SQLMetaRepository) Delete(ctx context.Context, collectionID uuid.UUID, id int64, offset int64) error {
+	_, err := r.conn.ExecContext(ctx, `delete from embeddings_meta where id = $1`, id)
 	if err != nil {
 		return err
 	}
 
-	err = r.CreateFreeOffset(offset)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *SQLMetaRepository) CreateFreeOffset(offset int64) error {
-	_, err := r.conn.Exec(`insert into free_offsets (offset) values ($1);`, offset)
+	err = r.CreateFreeOffset(ctx, collectionID, offset)
 	if err != nil {
 		return err
 	}
@@ -76,17 +68,27 @@ func (r *SQLMetaRepository) CreateFreeOffset(offset int64) error {
 	return nil
 }
 
-func (r *SQLMetaRepository) GetFreeOffset() (*int64, error) {
-	row := r.conn.QueryRow(`
+func (r *SQLMetaRepository) CreateFreeOffset(ctx context.Context, collectionID uuid.UUID, offset int64) error {
+	_, err := r.conn.Exec(`insert into free_offsets (offset, collection_id) values ($1, $2);`, offset, collectionID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *SQLMetaRepository) GetFreeOffset(ctx context.Context, collectionID uuid.UUID) (*int64, error) {
+	row := r.conn.QueryRowContext(ctx, `
 		delete from free_offsets
 		where offset = (
 			select offset
 			from free_offsets
+			where collection_id = $1
 			order by offset
 			limit 1
 		)
 		returning offset;
-	`)
+	`, collectionID)
 
 	var result int64
 	if err := row.Scan(&result); err != nil {
@@ -99,7 +101,7 @@ func (r *SQLMetaRepository) GetFreeOffset() (*int64, error) {
 	return &result, nil
 }
 
-func (r *SQLMetaRepository) GetAll() ([]model.EmbeddingMeta, error) {
+func (r *SQLMetaRepository) GetAll(ctx context.Context, collectionID uuid.UUID) ([]model.EmbeddingMeta, error) {
 	rows, err := r.conn.Query(`
 		select
 			id,
@@ -107,8 +109,9 @@ func (r *SQLMetaRepository) GetAll() ([]model.EmbeddingMeta, error) {
 			value,
 			offset,
 			created_at
-		from embeddings_meta;
-	`)
+		from embeddings_meta
+		where collection_id = $1;
+	`, collectionID)
 	if err != nil {
 		return nil, err
 	}

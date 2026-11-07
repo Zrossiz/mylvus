@@ -3,6 +3,9 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/Zrossiz/mylvus/internal/model"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) CreateCollection(rw http.ResponseWriter, r *http.Request) {
@@ -16,7 +19,13 @@ func (h *Handler) CreateCollection(rw http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	id, err := h.collectionSrv.Create(ctx, body.Title, body.EmbeddingSize)
+	collection := model.Collection{
+		ID:            uuid.New(),
+		Title:         body.Title,
+		EmbeddingSize: body.EmbeddingSize,
+	}
+
+	id, err := h.collectionSrv.Create(ctx, collection)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -25,18 +34,4 @@ func (h *Handler) CreateCollection(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 	rw.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(rw).Encode(id)
-}
-
-func (h *Handler) GetAllCollections(rw http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	collections, err := h.collectionSrv.GetAll(ctx)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	rw.WriteHeader(http.StatusOK)
-	rw.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(rw).Encode(collections)
 }

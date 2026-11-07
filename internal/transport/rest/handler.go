@@ -21,8 +21,7 @@ func New(r chi.Router, cfg config.Embedding, srv *service.Service) {
 	}
 
 	r.Post("/api/v1/collections", h.CreateCollection)
-	r.Get("/api/v1/collections", h.GetAllCollections)
-	r.Post("/api/v1/embeddings", h.CreateEmbedding)
-	r.Post("/api/v1/embeddings/closest", h.FindClosest)
-	r.Post("/api/v1/embeddings/matching", h.FindMatching)
+	r.Post("/api/v1/collections/{title}/embeddings", h.CreateEmbedding)
+	r.Post("/api/v1/collections/{title}/embeddings/closest", h.FindClosest)
+	r.Post("/api/v1/collections/{title}/embeddings/matching", h.FindMatching)
 }

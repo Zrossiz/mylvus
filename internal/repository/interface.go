@@ -8,14 +8,15 @@ import (
 )
 
 type EmbeddingRepo interface {
-	Create(embedding model.Embedding) error
-	GetAll() ([]model.Embedding, error)
-	// GetAllFromDisk() ([]model.Embedding, error)
+	Create(ctx context.Context, collection model.Collection, embedding model.Embedding) error
+	GetAll(collectionTitle string) ([]model.Embedding, error)
+	GetAllFromDisk(ctx context.Context, collectiont model.Collection) ([]model.Embedding, error)
 }
 
 type CollectionRepo interface {
 	Create(ctx context.Context, collection model.Collection) (uuid.UUID, error)
-	GetAll(ctx context.Context) ([]model.Collection, error)
+	GetByTitle(ctx context.Context, title string) (*model.Collection, error)
+	CreateBinaryFile(ctx context.Context, title string) (string, error)
 }
 
 type ConnectionRepo interface {
@@ -24,11 +25,11 @@ type ConnectionRepo interface {
 }
 
 type SQLMetaRepo interface {
-	Create(meta model.EmbeddingMeta) error
-	CreateFreeOffset(offset int64) error
-	Delete(id int64, offset int64) error
-	GetAll() ([]model.EmbeddingMeta, error)
-	GetFreeOffset() (*int64, error)
+	Create(ctx context.Context, meta model.EmbeddingMeta) error
+	CreateFreeOffset(ctx context.Context, collectionID uuid.UUID, offset int64) error
+	Delete(ctx context.Context, collectionID uuid.UUID, id int64, offset int64) error
+	GetAll(ctx context.Context, collectionID uuid.UUID) ([]model.EmbeddingMeta, error)
+	GetFreeOffset(ctx context.Context, collectionID uuid.UUID) (*int64, error)
 }
 
 type BinaryEmbeddingRepo interface {

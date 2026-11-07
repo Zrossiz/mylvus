@@ -13,6 +13,6 @@ type Service struct {
 func New(cfg *config.Config, repo *repository.Repository) *Service {
 	return &Service{
 		Collection: NewCollectionService(repo.Collection),
-		Embedding:  NewEmbeddingService(cfg.Embedding, repo.Embedding),
+		Embedding:  NewEmbeddingService(cfg.Embedding, repo.Embedding, repo.Collection),
 	}
 }

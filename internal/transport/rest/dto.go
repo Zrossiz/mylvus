@@ -1,9 +1,8 @@
 package rest
 
 type createEmbeddingDTO struct {
-	CollectionID string    `json:"collection_id"`
-	Value        string    `json:"value"`
-	Vector       []float32 `json:"vector"`
+	Value  string    `json:"value"`
+	Vector []float32 `json:"vector"`
 }
 
 type findEmbeddingsDTO struct {

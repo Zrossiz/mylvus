@@ -17,10 +17,12 @@ func NewCollectionService(collectionRepo CollectionRepository) *CollectionServic
 	}
 }
 
-func (s *CollectionService) Create(ctx context.Context, title string, size int64) (uuid.UUID, error) {
-	return s.collectionRepo.Create(ctx, title, size)
-}
+func (s *CollectionService) Create(ctx context.Context, collection model.Collection) (uuid.UUID, error) {
+	filepath, err := s.collectionRepo.CreateBinaryFile(ctx, collection.Title)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	collection.BinaryFilepath = filepath
 
-func (s *CollectionService) GetAll(ctx context.Context) ([]model.Collection, error) {
-	return s.collectionRepo.GetAll(ctx)
+	return s.collectionRepo.Create(ctx, collection)
 }

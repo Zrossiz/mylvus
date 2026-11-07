@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"time"
 
@@ -44,50 +45,40 @@ func (r *CollectionRepository) Create(ctx context.Context, collection model.Coll
 	return collection.ID, nil
 }
 
-func (r *CollectionRepository) GetAll(ctx context.Context) ([]model.Collection, error) {
-	rows, err := r.conn.QueryContext(ctx, `
+func (r *CollectionRepository) GetByTitle(ctx context.Context, title string) (*model.Collection, error) {
+	row := r.conn.QueryRowContext(ctx, `
 		select
 			id,
 			title,
 			embedding_size,
 			binary_filepath,
 			created_at
-		from collections;
-	`)
+		from collections
+		where title = $1;
+	`, title)
+
+	var collection model.Collection
+	err := row.Scan(
+		&collection.ID,
+		&collection.Title,
+		&collection.EmbeddingSize,
+		&collection.BinaryFilepath,
+		&collection.CreatedAt,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	var collections []model.Collection
-	for rows.Next() {
-		var collection model.Collection
-
-		err = rows.Scan(
-			&collection.ID,
-			&collection.Title,
-			&collection.EmbeddingSize,
-			&collection.BinaryFilepath,
-			&collection.CreatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		collections = append(collections, collection)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return collections, nil
+	return &collection, nil
 }
 
-func (r *CollectionRepository) CreateBinaryFile(ctx context.Context, filepath string) error {
+func (r *CollectionRepository) CreateBinaryFile(ctx context.Context, title string) (string, error) {
+	// TODO: форматировать путь хранения данных
+	filepath := fmt.Sprintf("/Users/zrossiz/Desktop/vectorDB/mylvus/dbs/%s.dat", title)
 	_, err := os.Create(filepath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return filepath, nil
 }
