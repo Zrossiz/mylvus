@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/Zrossiz/mylvus/internal/model"
 	"github.com/google/uuid"
@@ -18,6 +19,11 @@ func (h *Handler) CreateCollection(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+
+	if strings.Contains(body.Title, "../") || body.Title == "" {
+		http.Error(rw, "invalid collection title", http.StatusBadRequest)
+		return
+	}
 
 	collection := model.Collection{
 		ID:            uuid.New(),

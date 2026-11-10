@@ -28,7 +28,7 @@ func New(cfg *config.Config) (*Repository, error) {
 
 	binaryRepo := NewBinaryEmbeddingRepository()
 	repo.Collection = NewCollectionRepository(conn)
-	combinedRepo, err := NewSQLBinaryRepository(sqlMetaRepo, binaryRepo, repo.Collection)
+	combinedRepo, err := NewSQLBinaryRepository(sqlMetaRepo, binaryRepo, repo.Collection, conn)
 	if err != nil {
 		return nil, err
 	}

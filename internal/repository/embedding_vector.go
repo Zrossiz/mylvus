@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 )
@@ -82,4 +83,12 @@ func (r *BinaryEmbeddingRepository) GetEmbeddingByOffset(filepath string, offset
 	}
 
 	return embedding, nil
+}
+
+func (r *BinaryEmbeddingRepository) Truncate(filepath string, size int64) error {
+	if err := os.Truncate(filepath, size); err != nil {
+		return fmt.Errorf("truncate vector file to %d bytes: %w", size, err)
+	}
+
+	return nil
 }

@@ -34,6 +34,10 @@ func (s *EmbeddingService) Create(ctx context.Context, collection string, embedd
 		return err
 	}
 
+	if col.EmbeddingSize != int64(len(embedding.Vector)) {
+		return apperrors.ErrInvalidEmbeddingLen
+	}
+
 	embedding.CollectionID = col.ID
 
 	return s.embeddingRepo.Create(ctx, *col, embedding)

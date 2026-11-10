@@ -33,12 +33,12 @@ func Connect(filepath string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func (r *SQLMetaRepository) Create(ctx context.Context, meta model.EmbeddingMeta) error {
+func (r *SQLMetaRepository) Create(ctx context.Context, tx *sql.Tx, meta model.EmbeddingMeta) error {
 	if meta.CollectionID.String() == nilUUIDValue {
 		return fmt.Errorf("collection id must be a value")
 	}
 
-	_, err := r.conn.ExecContext(ctx, `
+	_, err := tx.ExecContext(ctx, `
 		insert into embeddings_meta (
 			id,
 			collection_id,
@@ -54,8 +54,8 @@ func (r *SQLMetaRepository) Create(ctx context.Context, meta model.EmbeddingMeta
 	return nil
 }
 
-func (r *SQLMetaRepository) Delete(ctx context.Context, collectionID uuid.UUID, id int64, offset int64) error {
-	_, err := r.conn.ExecContext(ctx, `delete from embeddings_meta where id = $1`, id)
+func (r *SQLMetaRepository) Delete(ctx context.Context, collectionID, embeddingID uuid.UUID, offset int64) error {
+	_, err := r.conn.ExecContext(ctx, `delete from embeddings_meta where id = $1`, embeddingID)
 	if err != nil {
 		return err
 	}
@@ -77,8 +77,8 @@ func (r *SQLMetaRepository) CreateFreeOffset(ctx context.Context, collectionID u
 	return nil
 }
 
-func (r *SQLMetaRepository) GetFreeOffset(ctx context.Context, collectionID uuid.UUID) (*int64, error) {
-	row := r.conn.QueryRowContext(ctx, `
+func (r *SQLMetaRepository) GetFreeOffset(ctx context.Context, tx *sql.Tx, collectionID uuid.UUID) (*int64, error) {
+	row := tx.QueryRowContext(ctx, `
 		delete from free_offsets
 		where offset = (
 			select offset

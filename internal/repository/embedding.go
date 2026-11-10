@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"sync"
 	"time"
 
@@ -12,6 +14,7 @@ type SQLBinaryRepository struct {
 	sqlMetaRepo       SQLMetaRepo
 	sqlCollectionRepo SQLCollectionRepo
 	binaryRepo        BinaryEmbeddingRepo
+	conn              *sql.DB
 
 	mu   sync.RWMutex
 	data map[string][]model.Embedding
@@ -21,11 +24,13 @@ func NewSQLBinaryRepository(
 	sqlMetaRepo SQLMetaRepo,
 	binaryRepo BinaryEmbeddingRepo,
 	sqlCollectionRepo SQLCollectionRepo,
+	conn *sql.DB,
 ) (*SQLBinaryRepository, error) {
 	repo := SQLBinaryRepository{
 		sqlMetaRepo:       sqlMetaRepo,
 		binaryRepo:        binaryRepo,
 		sqlCollectionRepo: sqlCollectionRepo,
+		conn:              conn,
 		data:              make(map[string][]model.Embedding),
 	}
 
@@ -33,10 +38,13 @@ func NewSQLBinaryRepository(
 }
 
 func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Collection, embedding model.Embedding) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	tx, err := r.conn.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-	offset, err := r.sqlMetaRepo.GetFreeOffset(ctx, collection.ID)
+	offset, err := r.sqlMetaRepo.GetFreeOffset(ctx, tx, collection.ID)
 	if err != nil {
 		return err
 	}
@@ -67,7 +75,17 @@ func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Colle
 		CreatedAt:    time.Now(),
 	}
 
-	err = r.sqlMetaRepo.Create(ctx, meta)
+	err = r.sqlMetaRepo.Create(ctx, tx, meta)
+	if err != nil {
+		if offset == nil {
+			truncErr := r.binaryRepo.Truncate(collection.BinaryFilepath, newOffset)
+			return errors.Join(err, truncErr)
+		}
+
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
@@ -83,9 +101,8 @@ func (r *SQLBinaryRepository) Create(ctx context.Context, collection model.Colle
 
 func (r *SQLBinaryRepository) GetAll(ctx context.Context, collectionTitle string) ([]model.Embedding, error) {
 	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	embs, _ := r.data[collectionTitle]
+	r.mu.RUnlock()
 
 	if len(embs) != 0 {
 		return embs, nil
@@ -96,9 +113,7 @@ func (r *SQLBinaryRepository) GetAll(ctx context.Context, collectionTitle string
 		return nil, err
 	}
 
-	r.data[collectionTitle] = diskEmbs
-
-	return embs, nil
+	return diskEmbs, nil
 }
 
 func (r *SQLBinaryRepository) GetAllFromDiskByTitle(ctx context.Context, collectionTitle string) ([]model.Embedding, error) {
@@ -137,7 +152,9 @@ func (r *SQLBinaryRepository) GetAllFromDisk(ctx context.Context, collection mod
 		})
 	}
 
+	r.mu.Lock()
 	r.data[collection.Title] = result
+	r.mu.Unlock()
 
 	return result, nil
 }

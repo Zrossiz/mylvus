@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/Zrossiz/mylvus/internal/model"
 	"github.com/google/uuid"
@@ -20,15 +21,16 @@ type SQLCollectionRepo interface {
 }
 
 type SQLMetaRepo interface {
-	Create(ctx context.Context, meta model.EmbeddingMeta) error
+	Create(ctx context.Context, tx *sql.Tx, meta model.EmbeddingMeta) error
 	CreateFreeOffset(ctx context.Context, collectionID uuid.UUID, offset int64) error
-	Delete(ctx context.Context, collectionID uuid.UUID, id int64, offset int64) error
+	Delete(ctx context.Context, collectionID, embeddingID uuid.UUID, offset int64) error
 	GetAll(ctx context.Context, collectionID uuid.UUID) ([]model.EmbeddingMeta, error)
-	GetFreeOffset(ctx context.Context, collectionID uuid.UUID) (*int64, error)
+	GetFreeOffset(ctx context.Context, tx *sql.Tx, collectionID uuid.UUID) (*int64, error)
 }
 
 type BinaryEmbeddingRepo interface {
 	GetEmbeddingByOffset(filepath string, offset, embLen int64) ([]float32, error)
 	InsertAtEnd(filepath string, embedding []float32) (int64, error)
 	InsertAtOffset(filepath string, embedding []float32, offset int64) error
+	Truncate(filepath string, offset int64) error
 }
